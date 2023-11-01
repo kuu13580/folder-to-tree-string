@@ -1,0 +1,91 @@
+function countLeadingSpaces(str) {
+  let count = 0;
+
+  for (let i = 0; i < str.length; i++) {
+    if (str[i] === " ") count++;
+    else if (str[i] === "\t") count += 2;
+    else break;
+  }
+  return count;
+}
+
+function folderStringToList(folderStr) {
+  const lines = folderStr.split("\n");
+
+  const rows = lines.map((line) => {
+    const level = Math.floor(countLeadingSpaces(line) / 2);
+    return { name: line.trim(), layer: level };
+  });
+
+  return rows;
+}
+
+function maxLayerOfTree(rows) {
+  return rows.reduce((acc, cur) => {
+    return Math.max(acc, cur.layer);
+  }, 0);
+}
+
+function rowsToLayerMap(rows) {
+  if (rows.length === 0) return [];
+  const maxLayer = maxLayerOfTree(rows);
+  const result = Array(maxLayer + 1)
+    .fill(false)
+    .map(() => Array(rows.length).fill(false));
+  rows.forEach((row, i) => {
+    result[row.layer][i] = true;
+  });
+  return result;
+}
+
+function rowsToTreeString(rows) {
+  let lines = Array(rows.length).fill("");
+  const maxLayer = maxLayerOfTree(rows);
+  const layerMap = rowsToLayerMap(rows);
+  for (let curLayer = 0; curLayer <= maxLayer; curLayer++) {
+    let end_flag = false;
+    const currentLayerMap = layerMap[curLayer];
+    const nextLayerMap = layerMap[curLayer + 1];
+    lines = lines.map((line, row) => {
+      // 確定済み
+      if (rows[row].layer < curLayer) return line;
+      // そのレイヤーにディレクトリ存在
+      if (rows[row].layer === curLayer) {
+        end_flag = false;
+        return line + rows[row].name;
+      }
+      // 最終レイヤー
+      if (curLayer == maxLayer) return line;
+      // 次のレイヤーにディレクトリ存在
+      if (curLayer != maxLayer && rows[row].layer === curLayer + 1) {
+        for (let i = row + 1; i < rows.length; i++) {
+          if (end_flag === false && nextLayerMap[i] === true)
+            return line + "├─ ";
+          if (end_flag === false && currentLayerMap[i] == true) {
+            return line + "└─ ";
+          }
+        }
+        return line + "└─ ";
+      }
+      // まだその階層の次に存在する
+      for (let i = row + 1; i < rows.length; i++) {
+        if (end_flag === false && currentLayerMap[i] == true) {
+          end_flag = true;
+          // return line + "└─ ";
+        }
+        if (end_flag === false && nextLayerMap[i] === true) {
+          return line + "│  ";
+        }
+      }
+      return line + "   ";
+    });
+  }
+
+  return lines.join("  \n");
+}
+
+const folderStringToTreeString = (folderString) => {
+  return rowsToTreeString(folderStringToList(folderString));
+}
+
+export default folderStringToTreeString;
