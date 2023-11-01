@@ -89,6 +89,8 @@ function rowsToTreeString(rows: Row[]): string {
   return lines.join("  \n");
 }
 
-export default const folderStringToTreeString = (folderString: string) => {
+const folderStringToTreeString = (folderString: string) => {
   return rowsToTreeString(folderStringToList(folderString));
 }
+
+export default folderStringToTreeString;
